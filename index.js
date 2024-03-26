@@ -38,6 +38,13 @@ app.get('/api/persons', (req, res) => {
     res.send(persons)
 })
 
+app.get('/api/persons/:id', (req, res) => {
+    const person = persons.find(person => person.id === Number(req.params.id))
+    console.log({ person })
+    if (person) { res.json(person) }
+    else { res.status(404).end() }
+})
+
 const PORT = 3001
 app.listen(PORT, () => console.log(`connected to ${PORT}`))
 
