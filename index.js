@@ -46,6 +46,18 @@ app.get('/api/persons/:id', (req, res) => {
 })
 
 app.post('/api/persons', (req, res) => {
+
+    const person = persons.find((person) => person.name === req.body.name);
+    if (person) {
+        return res.status(400).send({ error: `user ${person.name} already exists` })
+    }
+
+    if (!req.body.name) {
+        return res.status(400).send({ error: 'name field must not be blank' })
+    }
+    if (!req.body.number) {
+        return res.status(400).send({ error: 'number field must not be blank' })
+    }
     const id = Math.round(Math.random() * Math.random() * 1000000)
 
     const newPerson = { name: req.body.name, number: req.body.number, id }
