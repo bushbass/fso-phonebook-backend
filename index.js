@@ -1,7 +1,21 @@
+require('dotenv').config()
 const express = require('express')
 const morgan = require('morgan')
 const cors = require('cors')
 const app = express()
+
+const Person = require('./models/personsModel')
+const mongoose = require('mongoose')
+
+
+const url = process.env.MONGO_URI
+
+mongoose.set('strictQuery', false)
+
+mongoose.connect(url)
+
+
+
 app.use(express.static('dist'))
 
 app.use(cors())
@@ -45,22 +59,19 @@ app.get('/info', (req, res) => {
 })
 
 app.get('/api/persons', (req, res) => {
-    res.send(persons)
+    Person.find({}).then(people => {
+        res.json(people)
+    })
 })
 
+
+
 app.get('/api/persons/:id', (req, res) => {
-    const person = persons.find(person => person.id === Number(req.params.id))
-    console.log({ person })
-    if (person) { res.json(person) }
-    else { res.status(404).end() }
+    Person.findById(req.params.id).then(person =>
+        res.json(person))
 })
 
 app.post('/api/persons', (req, res) => {
-
-    const person = persons.find((person) => person.name === req.body.name);
-    if (person) {
-        return res.status(400).send({ error: `user ${person.name} already exists` })
-    }
 
     if (!req.body.name) {
         return res.status(400).send({ error: 'name field must not be blank' })
@@ -68,17 +79,23 @@ app.post('/api/persons', (req, res) => {
     if (!req.body.number) {
         return res.status(400).send({ error: 'number field must not be blank' })
     }
-    const id = Math.round(Math.random() * Math.random() * 1000000)
+    const person = new Person({
+        name: req.body.name,
+        number: req.body.number
+    })
 
-    const newPerson = { name: req.body.name, number: req.body.number, id }
-    persons = persons.concat(newPerson)
-    res.send(persons)
+    person.save().then(savedPerson => {
+        res.json(savedPerson)
+    })
 
 })
 
 app.delete('/api/persons/:id', (req, res) => {
-    persons = persons.filter(person => person.id !== Number(req.params.id))
-    res.status(204).end()
+    // persons = persons.filter(person => person.id !== Number(req.params.id))
+    // res.status(204).end()
+    Person.findByIdAndDelete(req.params.id).then(person =>
+        res.json(person))
+
 })
 
 
